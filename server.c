@@ -1,7 +1,4 @@
 #include "utils.h"
-#include <netdb.h>
-#include <stdio.h>
-#include <sys/socket.h>
 
 #define CONNECTION_BACKLOG 5
 #define SERVER_PORT "8080"
