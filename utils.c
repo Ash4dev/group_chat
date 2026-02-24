@@ -1,4 +1,6 @@
 #include "utils.h"
+#include <netdb.h>
+#include <sys/socket.h>
 
 void log_error(const char *message) { fprintf(stderr, "Error: %s\n", message); }
 void log_event(const char *message) { fprintf(stdout, "Log: %s\n", message); }
@@ -17,6 +19,42 @@ int obtain_ip_list(const char *hostname, const char *portno,
     return PROG_FAILURE;
   }
   return PROG_SUCCESS;
+}
+
+int create_valid_client_socket(const struct addrinfo *ip_list) {
+  for (const struct addrinfo *itr = ip_list; itr != NULL; itr = itr->ai_next) {
+    if (itr->ai_addr == NULL)
+      continue;
+    int client_sock_fd =
+        socket(itr->ai_family, itr->ai_socktype, itr->ai_protocol);
+    if (client_sock_fd < 0) {
+      continue;
+    }
+    int connect_check = connect(client_sock_fd, itr->ai_addr, itr->ai_addrlen);
+    if (connect_check == 0) {
+      return client_sock_fd;
+    }
+    close(client_sock_fd);
+  }
+  return PROG_FAILURE;
+}
+
+int create_valid_server_socket(const struct addrinfo *ip_list) {
+  for (const struct addrinfo *itr = ip_list; itr != NULL; itr = itr->ai_next) {
+    if (itr->ai_addr == NULL)
+      continue;
+    int server_sock_fd =
+        socket(itr->ai_family, itr->ai_socktype, itr->ai_protocol);
+    if (server_sock_fd < 0) {
+      continue;
+    }
+    int bind_check = bind(server_sock_fd, itr->ai_addr, itr->ai_addrlen);
+    if (bind_check == 0) {
+      return server_sock_fd;
+    }
+    close(server_sock_fd);
+  }
+  return PROG_FAILURE;
 }
 
 int find_valid_connection_address(struct addrinfo *ip_list,

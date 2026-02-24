@@ -25,7 +25,7 @@ int obtain_ip_list(const char *hostname, const char *portno,
                    const struct addrinfo *hints,
                    struct addrinfo **ptr_to_ip_list);
 
-int find_valid_connection_address(struct addrinfo *ip_list,
-                                  struct addrinfo **found_connection);
+int create_valid_client_socket(const struct addrinfo *ip_list);
+int create_valid_server_socket(const struct addrinfo *ip_list);
 
 #endif // GRP_CHAT_UTILS
