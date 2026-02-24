@@ -48,6 +48,11 @@ int create_valid_server_socket(const struct addrinfo *ip_list) {
     if (server_sock_fd < 0) {
       continue;
     }
+
+    // NOTE: allow reuse of ip+port after restart
+    int yes = 1;
+    setsockopt(server_sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
     int bind_check = bind(server_sock_fd, itr->ai_addr, itr->ai_addrlen);
     if (bind_check == 0) {
       return server_sock_fd;
@@ -55,18 +60,4 @@ int create_valid_server_socket(const struct addrinfo *ip_list) {
     close(server_sock_fd);
   }
   return PROG_FAILURE;
-}
-
-int find_valid_connection_address(struct addrinfo *ip_list,
-                                  struct addrinfo **found_connection) {
-  struct addrinfo *itr = ip_list;
-  while (itr != NULL && itr->ai_addr == NULL) {
-    itr = itr->ai_next;
-  }
-  if (itr == NULL) {
-    log_error("Could NOT find a connection address");
-    return PROG_FAILURE;
-  }
-  *found_connection = itr;
-  return PROG_SUCCESS;
 }
