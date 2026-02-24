@@ -1,10 +1,11 @@
 #include "utils.h"
 
+#define SERVER_PORT "8080"
+
 int main() {
   // NOTE: define upfront to enable clean up (goto: avoid repeat manual clean)
   int main_return_value = EXIT_FAILURE;
   struct addrinfo *ip_list = NULL;
-  struct addrinfo *found_connection = NULL;
   int client_sock_fd = -1;
 
   // NOTE: obtain connection address for the server
@@ -14,35 +15,19 @@ int main() {
   hints.ai_socktype = SOCK_STREAM;
 
   // NOTE: draw a diagram to determine pass by value/address
-  if (obtain_ip_list("www.google.com", "80", &hints, &ip_list) < 0)
+  if (obtain_ip_list(NULL, SERVER_PORT, &hints, &ip_list) < 0)
     goto cleanup;
 
-  if (find_valid_connection_address(ip_list, &found_connection) < 0)
-    goto cleanup;
+  log_output("Address was resolved");
 
-  log_event("Address resolved");
-
-  // NOTE: establish a client socket
-  client_sock_fd =
-      socket(found_connection->ai_family, found_connection->ai_socktype,
-             found_connection->ai_protocol);
+  client_sock_fd = create_valid_client_socket(ip_list);
   if (client_sock_fd < 0) {
     log_error("Could NOT open a socket");
     goto cleanup;
   }
 
-  log_event("Socket was obtained");
-
-  // NOTE: establish connection of client socket to server
-  int connection_check = connect(client_sock_fd, found_connection->ai_addr,
-                                 found_connection->ai_addrlen);
-
-  if (connection_check < 0) {
-    log_error("Client-Server connection NOT established");
-    goto cleanup;
-  }
-
-  log_event("Cient-Server connection established");
+  log_output("Socket was obtained");
+  log_output("Cient-Server connection established");
 
   // NOTE: send response to google http server
   const char *http_request = "GET / HTTP/1.1\r\n"
@@ -83,7 +68,7 @@ int main() {
   }
   if (bytest_recvd <= 0) {
     if (bytest_recvd == 0)
-      log_event("Peer connection closed (EOF)");
+      log_output("Peer connection closed (EOF)");
     else
       log_error("Invalid number of bytes received");
     goto cleanup;
@@ -92,13 +77,13 @@ int main() {
   main_return_value = EXIT_SUCCESS;
 cleanup:
 
-  log_event("Initiating resource clean up");
+  log_output("Initiating resource clean up");
   if (client_sock_fd >= 0) {
     close(client_sock_fd);
   }
   if (ip_list) {
     freeaddrinfo(ip_list);
   }
-  log_event("Resource clean up complete");
+  log_output("Resource clean up complete");
   return main_return_value;
 }
