@@ -42,24 +42,14 @@ int main() {
   uint client_addr_size = sizeof client_addr;
   int client_sock_fd = accept(server_sock_fd, &client_addr, &client_addr_size);
 
-  char incoming_buffer[1024];
-
-  ssize_t recv_size = 0;
-  while ((recv_size = recv(client_sock_fd, (void *)incoming_buffer,
-                           sizeof(incoming_buffer) - 1, 0)) > 0) {
-    log_output("Incoming buffer: \n");
-    log_output(incoming_buffer);
-  }
-
-  if (recv_size <= 0) {
-    if (recv_size == 0) {
-      log_output("reached EOF");
-      main_return_value = EXIT_SUCCESS;
-    } else {
-      log_output("invalid byte size");
-    }
+  int recv_check = receive_byte_stream(client_sock_fd);
+  if (recv_check) {
+    log_error("Invalid byte size");
     goto cleanup;
   }
+
+  log_output("reached EOF");
+  main_return_value = EXIT_SUCCESS;
 
 cleanup:
 

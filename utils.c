@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <netdb.h>
+#include <stdio.h>
 #include <sys/socket.h>
 
 void log_error(const char *message) { fprintf(stderr, "Error: %s\n", message); }
@@ -60,4 +61,18 @@ int create_valid_server_socket(const struct addrinfo *ip_list) {
     close(server_sock_fd);
   }
   return PROG_FAILURE;
+}
+
+int receive_byte_stream(const int fd) {
+  char incoming_buffer[RECEIVE_BUFFER_SIZE];
+
+  ssize_t recv_size = 0;
+  while ((recv_size = recv(fd, (void *)incoming_buffer,
+                           sizeof(incoming_buffer) - 1, 0)) > 0) {
+    incoming_buffer[recv_size] = '\0';
+    log_output(incoming_buffer);
+    log_output("------------------\n\n");
+  }
+
+  return ((recv_size == 0) ? PROG_SUCCESS : PROG_FAILURE);
 }

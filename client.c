@@ -57,24 +57,15 @@ int main() {
    * Hence, we need to keep receiving until bytest_recvd become zero
   */
 
-  ssize_t bytest_recvd;
-  while ((bytest_recvd = recv(client_sock_fd, (void *)incoming_buffer,
-                              sizeof(incoming_buffer) - 1, 0)) > 0) {
-
-    incoming_buffer[bytest_recvd] = '\0';
-    log_output(incoming_buffer);
-    log_output("--------------------------------------------\n\n\n\n");
-    memset((void *)incoming_buffer, 0, sizeof incoming_buffer);
-  }
-  if (bytest_recvd <= 0) {
-    if (bytest_recvd == 0)
-      log_output("Peer connection closed (EOF)");
-    else
-      log_error("Invalid number of bytes received");
+  int recv_check = receive_byte_stream(client_sock_fd);
+  if (recv_check) {
+    log_error("Invalid byte size");
     goto cleanup;
   }
 
+  log_output("reached EOF");
   main_return_value = EXIT_SUCCESS;
+
 cleanup:
 
   log_output("Initiating resource clean up");

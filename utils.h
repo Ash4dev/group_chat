@@ -14,6 +14,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 
+#define RECEIVE_BUFFER_SIZE 8 * 1024
+
 #define PROG_SUCCESS 0
 #define PROG_FAILURE -1
 
@@ -27,5 +29,7 @@ int obtain_ip_list(const char *hostname, const char *portno,
 
 int create_valid_client_socket(const struct addrinfo *ip_list);
 int create_valid_server_socket(const struct addrinfo *ip_list);
+
+int receive_byte_stream(const int fd);
 
 #endif // GRP_CHAT_UTILS
