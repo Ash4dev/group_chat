@@ -42,10 +42,6 @@ int main() {
     goto cleanup;
   }
 
-  // NOTE: receive response from google
-  char incoming_buffer[1024]; // application limit
-  memset((void *)incoming_buffer, 0, sizeof incoming_buffer);
-
   /*
    * NOTE: SOCK_STREAM implies info byte-stream
 
