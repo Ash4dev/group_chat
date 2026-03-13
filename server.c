@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <sys/socket.h>
 
 #define CONNECTION_BACKLOG 5
 #define SERVER_PORT "8080"
@@ -38,9 +39,10 @@ int main() {
 
   // TODO: accept & jazz -> multi threaded program begins here
 
-  struct sockaddr client_addr;
-  uint client_addr_size = sizeof client_addr;
-  int client_sock_fd = accept(server_sock_fd, &client_addr, &client_addr_size);
+  struct sockaddr_storage client_addr; // NOTE: sockaddr_storage IP-agnostic
+  socklen_t client_addr_size = sizeof client_addr;
+  int client_sock_fd = accept(server_sock_fd, (struct sockaddr *)&client_addr,
+                              &client_addr_size);
 
   int recv_check = receive_byte_stream(client_sock_fd);
   if (recv_check) {
