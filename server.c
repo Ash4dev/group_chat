@@ -37,17 +37,16 @@ int main() {
 
   // TODO: accept & jazz -> multi threaded program begins here
 
-  struct sockaddr_storage client_addr; // NOTE: sockaddr_storage IP-agnostic
-  socklen_t client_addr_size = sizeof client_addr;
-  int client_sock_fd = accept(server_sock_fd, (struct sockaddr *)&client_addr,
-                              &client_addr_size);
+  accepted_client_socket_t *connection =
+      accept_incoming_connection(server_sock_fd);
 
-  int recv_check = receive_byte_stream(client_sock_fd);
+  int recv_check = receive_byte_stream(connection->client_socket_fd);
   if (recv_check) {
     log_error("Invalid byte size");
     goto cleanup;
   }
 
+  free(connection);
   log_output("reached EOF");
   main_return_value = EXIT_SUCCESS;
 

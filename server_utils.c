@@ -7,6 +7,8 @@
  */
 
 #include "server_utils.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 int create_valid_server_socket(const struct addrinfo *ip_list) {
   for (const struct addrinfo *itr = ip_list; itr != NULL; itr = itr->ai_next) {
@@ -29,4 +31,21 @@ int create_valid_server_socket(const struct addrinfo *ip_list) {
     close(server_sock_fd);
   }
   return PROG_FAILURE;
+}
+
+accepted_client_socket_t *accept_incoming_connection(int server_sock_fd) {
+  struct sockaddr_storage client_addr;
+  socklen_t client_addr_size = sizeof client_addr;
+  int client_sock_fd = accept(server_sock_fd, (struct sockaddr *)&client_addr,
+                              &client_addr_size);
+  if (client_sock_fd < 0) {
+    log_error("Could NOT accept client_connection");
+    return NULL;
+  }
+
+  accepted_client_socket_t *ptr =
+      (accepted_client_socket_t *)malloc(sizeof(accepted_client_socket_t));
+  ptr->client_socket_addr = client_addr;
+  ptr->client_socket_fd = client_sock_fd;
+  return ptr;
 }
