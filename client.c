@@ -1,6 +1,4 @@
-#include "utils.h"
-
-#define SERVER_PORT "8080"
+#include "client_utils.h"
 
 int main() {
   // NOTE: define upfront to enable clean up (goto: avoid repeat manual clean)

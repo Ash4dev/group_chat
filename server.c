@@ -1,8 +1,6 @@
-#include "utils.h"
-#include <sys/socket.h>
+#include "server_utils.h"
 
 #define CONNECTION_BACKLOG 5
-#define SERVER_PORT "8080"
 
 int main() {
   int main_return_value = EXIT_FAILURE;
