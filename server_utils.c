@@ -7,7 +7,8 @@
  */
 
 #include "server_utils.h"
-#include <stdlib.h>
+#include "common_utils.h"
+#include <stdio.h>
 #include <unistd.h>
 
 int create_valid_server_socket(const struct addrinfo *ip_list) {
@@ -48,4 +49,32 @@ accepted_client_socket_t *accept_incoming_connection(int server_sock_fd) {
   ptr->client_socket_addr = client_addr;
   ptr->client_socket_fd = client_sock_fd;
   return ptr;
+}
+
+void client_interaction(int client_socket_fd, int server_socket_fd) {
+  char input_buffer[BUFFER_SIZE];
+  char output_buffer[BUFFER_SIZE];
+
+  while (1) {
+    ssize_t received_byte_count =
+        receive_byte_stream(client_socket_fd, (char *)&input_buffer);
+    if (received_byte_count <= 0) {
+      goto cleanup;
+    }
+
+    ssize_t output_byte_count =
+        generate_output((const char *)&input_buffer, (char *)&output_buffer);
+    if (output_byte_count <= 0) {
+      goto cleanup;
+    }
+
+    ssize_t sent_byte_count = send_byte_stream(
+        client_socket_fd, (const void *)&output_buffer, output_byte_count);
+    if (sent_byte_count <= 0) {
+      goto cleanup;
+    }
+  }
+
+cleanup:
+  close(client_socket_fd);
 }
