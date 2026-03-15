@@ -4,27 +4,32 @@
 #include <sys/socket.h>
 
 void log_error(const char *message) { fprintf(stderr, "Error: %s\n", message); }
-void log_event(const char *message) { fprintf(stdout, "Log: %s\n", message); }
+void log_event(const char *message) { fprintf(stderr, "Log: %s\n", message); }
 void log_output(const char *message) {
   fprintf(stdout, "Output: %s\n", message);
 }
 
+// NOTE: copy: pass by value, reference: through it (*), itself (**)
 int obtain_ip_list(const char *hostname, const char *portno,
                    const struct addrinfo *hints,
                    struct addrinfo **ptr_to_ip_list) {
+
+  // NOTE: provide all possible network addresses based: hostname + port + hints
   int connection_check = getaddrinfo(hostname, portno, hints, ptr_to_ip_list);
-  if (connection_check != 0) {
-    // NOTE: gai_strerror only works for getaddrinfo
-    log_error(gai_strerror(connection_check));
+
+  if (connection_check) {
+    log_error(gai_strerror(connection_check)); // only works with getaddrinfo
     *ptr_to_ip_list = NULL;
     return PROG_FAILURE;
   }
+
   return PROG_SUCCESS;
 }
 
 ssize_t receive_all(const int fd, void *incoming_buffer,
                     size_t incoming_buffer_size) {
 
+  // NOTE: SOCK_STREAM: byte-stream / No defined boundaries / TCP Buffer bigger
   ssize_t total_recvd = 0;
 
   while (total_recvd < incoming_buffer_size) {

@@ -1,5 +1,3 @@
-// NOTE: keep it working & simple
-
 #ifndef GRP_CHAT_UTILS
 #define GRP_CHAT_UTILS
 
@@ -15,6 +13,8 @@
 #include <netinet/in.h>
 
 #define SERVER_PORT "8080"
+
+// NOTE: application buffer size
 #define BUFFER_SIZE 8 * 1024
 
 #define PROG_SUCCESS 0
