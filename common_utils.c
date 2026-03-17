@@ -86,6 +86,7 @@ ssize_t send_all(const int fd, const void *outgoing_buffer,
 
     total_sent += sent_byte_count;
   }
+  // TODO: define a message boundary none in stream by default
 
   return total_sent;
 }
