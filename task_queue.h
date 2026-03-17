@@ -26,7 +26,7 @@ typedef struct {
   uint head;
   uint tail;
   int worker_cnt;
-  int shutdown;
+  volatile int shutdown;
 
   /* NOTE:
    *
@@ -37,9 +37,11 @@ typedef struct {
 
 void thread_pool_init(thread_pool_t *pool, int count);
 void thread_pool_submit(thread_pool_t *pool, network_task_t *task);
-void thread_pool_execute(thread_pool_t *pool, network_task_t *task);
+
+int thread_pool_execute(thread_pool_t *pool);
 void execute_task(network_task_t *task);
 void *execute_task_loop(void *args);
+
 void thread_pool_destroy(thread_pool_t *pool);
 
 #endif // !TASK_QUEUE_H
