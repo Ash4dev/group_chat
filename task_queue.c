@@ -32,7 +32,7 @@ void thread_pool_submit(thread_pool_t *pool, network_task_t *task) {
 
   if (pool->shutdown) {
     pthread_mutex_unlock(&pool->mx_queue);
-    sem_post(&pool->sem_empty_cnt); // give slot back
+    sem_post(&pool->sem_empty_cnt); // NOTE: give slot back else CAPACITY LEAK
     return;
   }
 
@@ -52,9 +52,9 @@ void *execute_task_loop(void *args) {
 
   int exec_check = 0;
   while (1) {
-    // NOTE: no need to acquire lock if done below already
+    // NOTE: NEVER lock inside if outside or vice-versa: DEADLOCK
     if ((exec_check = thread_pool_execute(pool))) {
-      break;
+      break; // NOTE: every thread must have termination condition
     }
   }
 
@@ -78,7 +78,7 @@ int thread_pool_execute(thread_pool_t *pool) {
   pthread_mutex_unlock(&pool->mx_queue);
   sem_post(&pool->sem_empty_cnt);
 
-  // NOTE: no sync need: sequential execution now
+  // NOTE: task_to_execute: local to thread & not shared & sequential
   execute_task(task_to_execute);
   free(task_to_execute);
   task_to_execute = NULL;
@@ -90,8 +90,10 @@ void thread_pool_destroy(thread_pool_t *pool) {
   pthread_mutex_lock(&pool->mx_queue);
   pool->shutdown = 1;
 
+  // NOTE: if thread blocked, NEED to explicitly wake up at shutdown
   for (int i = 0; i < pool->worker_cnt; ++i) {
-    sem_post(&pool->sem_fill_cnt); // NOTE: enough to get by on execute
+    sem_post(
+        &pool->sem_fill_cnt); // NOTE: ARTIFICIAL SIGNALS: just enough to get by
   }
   pthread_mutex_unlock(&pool->mx_queue);
 
