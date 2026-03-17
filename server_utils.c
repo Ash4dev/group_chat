@@ -34,7 +34,7 @@ int create_valid_server_socket(const struct addrinfo *ip_list) {
   return PROG_FAILURE;
 }
 
-accepted_client_socket_t *accept_incoming_connection(int server_sock_fd) {
+accepted_peer_conn_t *accept_incoming_connection(int server_sock_fd) {
   struct sockaddr_storage client_addr;
   socklen_t client_addr_size = sizeof client_addr;
 
@@ -46,14 +46,14 @@ accepted_client_socket_t *accept_incoming_connection(int server_sock_fd) {
     return NULL;
   }
 
-  accepted_client_socket_t *ptr =
-      (accepted_client_socket_t *)malloc(sizeof(accepted_client_socket_t));
+  accepted_peer_conn_t *ptr =
+      (accepted_peer_conn_t *)malloc(sizeof(accepted_peer_conn_t));
   ptr->client_socket_addr = client_addr;
   ptr->peer_conn_fd = peer_conn_fd;
   return ptr;
 }
 
-int client_interaction(int peer_conn_fd, int server_socket_fd) {
+int client_interaction(int peer_conn_fd) {
   char input_buffer[BUFFER_SIZE];
   char output_buffer[BUFFER_SIZE];
 

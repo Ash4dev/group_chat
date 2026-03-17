@@ -5,14 +5,14 @@
 
 int create_valid_server_socket(const struct addrinfo *ip_list);
 
-typedef struct accepted_client_socket {
+typedef struct accepted_peer_conn {
   struct sockaddr_storage client_socket_addr;
   int peer_conn_fd;
-} accepted_client_socket_t;
+} accepted_peer_conn_t;
 
-accepted_client_socket_t *accept_incoming_connection(int served_socket_fd);
+accepted_peer_conn_t *accept_incoming_connection(int served_socket_fd);
 
 ssize_t generate_output(const char *input_buffer, char *output_buffer);
-int client_interaction(int peer_conn_fd, int served_socket_fd);
+int client_interaction(int peer_conn_fd);
 
 #endif // !SERVER_UTILS
