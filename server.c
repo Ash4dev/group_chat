@@ -1,6 +1,17 @@
-#include "server_utils.h"
+#include "task_queue.h"
 
 #define CONNECTION_BACKLOG 5
+
+/* NOTE:
+ *
+ * lscpu: Threads/core: 2, Cores/socket: 6, sockets: 1 -> 12 threads/socket
+ * Total CPU bound: 12
+ * Total I/O bound: 12*2 = 24
+ * expected task: I/O bound > CPU -> (12+24)/2 ~ 18
+ */
+#define THREAD_COUNT 18
+
+#define AVERAGE_CONNECTION_DURATION 10
 
 int main() {
   // TODO: FIX PROJ DIRS and CMAKE FILE
@@ -39,21 +50,39 @@ int main() {
   log_event("Server socket listening now");
 
   // NOTE: concurrency: send/recv are blocking (each client)
+  thread_pool_t pool;
+  thread_pool_init(&pool, THREAD_COUNT);
 
-  // TODO: thread_pool_init()
+  network_task_t tasks[MAX_TASK_QUEUE_SIZE] = {0};
+  int task_idx = 0;
 
+  accepted_peer_conn_t *connection;
   while (1) {
+
+    if (tasks[task_idx].is_active) {
+      sleep(AVERAGE_CONNECTION_DURATION);
+      continue;
+    }
+
     // NOTE: blocking: single prod / no other prod / no cons affected
-    accepted_client_socket_t *connection =
-        accept_incoming_connection(server_sock_fd);
+    if (!(connection = accept_incoming_connection(server_sock_fd))) {
+      continue;
+    }
 
-    // TODO: convert to task -> submit_task -> worker execs
+    tasks[task_idx].connection = connection;
 
-    free(connection);
-    connection = NULL;
+    // NOTE: only submit in the accept loop
+    thread_pool_submit(&pool, tasks + task_idx);
+    task_idx = (task_idx + 1) %
+               MAX_TASK_QUEUE_SIZE; // NOTE: loop around excess traffic
   }
 
-  // TODO: thread_pool_destroy()
+  thread_pool_destroy(&pool);
+
+  for (int i = 0; i < MAX_TASK_QUEUE_SIZE; ++i) {
+    analyze_task(tasks + i);
+    record_task(tasks + i);
+  }
 
   main_return_value = EXIT_SUCCESS;
 cleanup:
@@ -65,6 +94,10 @@ cleanup:
 
   if (ip_list) {
     freeaddrinfo(ip_list);
+  }
+
+  for (int i = 0; i < MAX_TASK_QUEUE_SIZE; ++i) {
+    free(tasks[i].connection);
   }
 
   log_event("Resource clean up complete");
