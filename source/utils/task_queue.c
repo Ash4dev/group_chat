@@ -48,8 +48,9 @@ void execute_task(network_task_t *task) {
   task->is_active = 0;
 }
 
-// TODO:
+// TODO: utility of methods is TBD: may be deleted
 void analyze_task(network_task_t *task) {}
+void record_task(network_task_t* task) {}
 
 void *execute_task_loop(void *args) {
   thread_pool_t *pool = ((thread_pool_t *)args);

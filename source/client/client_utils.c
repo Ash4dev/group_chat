@@ -30,6 +30,11 @@ int create_valid_client_socket(const struct addrinfo *ip_list) {
   return PROG_FAILURE;
 }
 
+// server has one too: can add here since server and client: separate executables
+ssize_t generate_output(const char *input_buffer, char *output_buffer) {
+  return 0;
+}
+
 int server_interaction(int client_socket_fd) {
   char input_buffer[BUFFER_SIZE];
   char output_buffer[BUFFER_SIZE];
