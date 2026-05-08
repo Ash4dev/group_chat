@@ -1,3 +1,11 @@
+/*
+ * File: server.c
+ * Author: Ashutosh Panigrahy
+ * Created: 2026-03-15
+ * Description: -
+ * NOTE: keep it working & simple
+ */
+
 #include "task_queue.h"
 
 #define CONNECTION_BACKLOG 5
@@ -53,36 +61,22 @@ int main() {
   thread_pool_t pool;
   thread_pool_init(&pool, THREAD_COUNT);
 
-  network_task_t tasks[MAX_TASK_QUEUE_SIZE] = {0};
-  int task_idx = 0;
-
-  accepted_peer_conn_t *connection;
   while (1) {
 
-    if (tasks[task_idx].is_active) {
-      sleep(AVERAGE_CONNECTION_DURATION);
-      continue;
-    }
-
     // NOTE: blocking: single prod / no other prod / no cons affected
+    accepted_peer_conn_t *connection;
     if (!(connection = accept_incoming_connection(server_sock_fd))) {
       continue;
     }
 
-    tasks[task_idx].connection = connection;
-
-    // NOTE: only submit in the accept loop
-    thread_pool_submit(&pool, tasks + task_idx);
-    task_idx = (task_idx + 1) %
-               MAX_TASK_QUEUE_SIZE; // NOTE: loop around excess traffic
+    network_task_t *task = malloc(sizeof(network_task_t));
+    task->connection = connection;
+    task->success_flag = 0;
+    task->is_active = 1;
+    thread_pool_submit(&pool, task); // NOTE: only submit here
   }
 
   thread_pool_destroy(&pool);
-
-  for (int i = 0; i < MAX_TASK_QUEUE_SIZE; ++i) {
-    analyze_task(tasks + i);
-    record_task(tasks + i);
-  }
 
   main_return_value = EXIT_SUCCESS;
 cleanup:
@@ -94,10 +88,6 @@ cleanup:
 
   if (ip_list) {
     freeaddrinfo(ip_list);
-  }
-
-  for (int i = 0; i < MAX_TASK_QUEUE_SIZE; ++i) {
-    free(tasks[i].connection);
   }
 
   log_event("Resource clean up complete");

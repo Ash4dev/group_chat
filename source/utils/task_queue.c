@@ -7,8 +7,6 @@
  */
 
 #include "task_queue.h"
-#include <string.h>
-#include <time.h>
 
 void thread_pool_init(thread_pool_t *pool, int count) {
   pthread_mutex_init(&pool->mx_queue, NULL);
@@ -47,6 +45,7 @@ void thread_pool_submit(thread_pool_t *pool, network_task_t *task) {
 
 void execute_task(network_task_t *task) {
   task->success_flag = client_interaction(task->connection->peer_conn_fd);
+  task->is_active = 0;
 }
 
 // TODO:
@@ -88,7 +87,8 @@ int thread_pool_execute(thread_pool_t *pool) {
   analyze_task(task_to_execute);
   record_task(task_to_execute);
 
-  memset(task_to_execute, 0, sizeof(network_task_t));
+  free(task_to_execute->connection);
+  free(task_to_execute);
   return 0;
 }
 

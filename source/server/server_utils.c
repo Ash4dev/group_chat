@@ -48,9 +48,16 @@ accepted_peer_conn_t *accept_incoming_connection(int server_sock_fd) {
 
   accepted_peer_conn_t *ptr =
       (accepted_peer_conn_t *)malloc(sizeof(accepted_peer_conn_t));
+  if (!ptr) {
+    return NULL;
+  }
   ptr->client_socket_addr = client_addr;
   ptr->peer_conn_fd = peer_conn_fd;
   return ptr;
+}
+
+ssize_t generate_output(const char *input_buffer, char *output_buffer) {
+  return 0;
 }
 
 int client_interaction(int peer_conn_fd) {
