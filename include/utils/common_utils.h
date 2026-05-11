@@ -54,8 +54,30 @@ int obtain_ip_list(const char *hostname, const char *service,
                    const struct addrinfo *hints,
                    struct addrinfo **ptr_to_ip_list);
 
-ssize_t receive_all(const int fd, void *incoming_buffer,
+/**
+ * @brief Receives a specific amount of data from a socket by looping recv calls.
+ * SOCK_STREAM data arrives in multiple fragments than a single block.
+ *
+ * @param[in] fd                   The file descriptor of the connected socket.
+ * @param[out] incoming_buffer     Pointer to the memory where data will be stored.
+ * @param[in] incoming_buffer_size Total number of bytes to receive.
+ * 
+ * @return The total number of bytes received till EOF returned. (complete / partial)
+ * @retval -1 if the connection error occurred.
+ */
+ssize_t receive_exact(const int fd, char *incoming_buffer,
                     size_t incoming_buffer_size);
+
+/**
+ * @brief Receives a length-prefixed (4-bytes) complete message from a TCP stream. No partial reads.
+ 
+ * @param[in]  fd                  The file descriptor of the connected socket.
+ * @param[out] buffer              Pointer to the destination buffer for the payload.
+ * 
+ * @return The number of payload bytes received (excluding the null terminator),
+ * @retval -1 if an error occurred, the connection was closed prematurely,
+ *         or the incoming message exceeds the buffer capacity.
+ */
 ssize_t receive_byte_stream(const int fd, char *buffer);
 
 ssize_t send_all(const int fd, const void *outgoing_buffer,
