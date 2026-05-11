@@ -80,8 +80,32 @@ ssize_t receive_exact(const int fd, char *incoming_buffer,
  */
 ssize_t receive_byte_stream(const int fd, char *buffer);
 
-ssize_t send_all(const int fd, const void *outgoing_buffer,
+/**
+ * @brief Sends a specific amount of data from a socket by looping send calls.
+ * 
+ * @param fd                       The file descriptor of the connected socket.
+ * @param outgoing_buffer          Pointer to the data buffer to be sent.
+ * @param outgoing_buffer_size     The exact number of bytes to send.
+ * 
+ * @return The total number of bytes successfully sent.
+ *         If the peer closes the connection mid-transfer (`EPIPE`), it returns 
+ *         the number of bytes sent before the closure.
+ *         Returns -1 if a fatal network error occurs.
+ */
+ssize_t send_exact(const int fd, const char *outgoing_buffer,
                  size_t outgoing_buffer_size);
+
+/**
+ * @brief Sends a length-prefixed (4-bytes) complete message from a TCP stream. No partial reads.
+ * 
+ * @param fd                      The file descriptor of the connected socket.
+ * @param outgoing_buffer         Pointer to the payload data to be sent.
+ * @param outgoing_buffer_size    The size of the payload in bytes.
+ * 
+ * @return The number of bytes of the *actual payload* sent (excluding the 4-byte header). 
+ *         Returns -1 if the header could not be fully sent, or if the payload 
+ *         could not be fully sent.
+ */
 ssize_t send_byte_stream(const int fd, const char *buffer, size_t buffer_size);
 
 #endif // GRP_CHAT_UTILS

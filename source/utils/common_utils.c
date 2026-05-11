@@ -87,23 +87,31 @@ ssize_t receive_byte_stream(const int fd, char *buffer) {
   return total_recvd;
 }
 
-ssize_t send_all(const int fd, const void *outgoing_buffer,
+ssize_t send_exact(const int fd, const char *outgoing_buffer,
                  size_t outgoing_buffer_size) {
+  
+  if (outgoing_buffer_size == 0)
+    return 0;
+
   ssize_t total_sent = 0;
 
   while (total_sent < outgoing_buffer_size) {
-    ssize_t sent_byte_count =
-        send(fd, (const char *)(outgoing_buffer) + total_sent,
-             outgoing_buffer_size - total_sent, 0);
 
-    // NOTE: error / peer closed connection
-    if (sent_byte_count <= 0) {
+    // Prevents SIGPIPE signal: causes immediate termination without core dump
+    // cat file | head : if head stops (no reader), cat stops (why waste resource)
+    ssize_t sent_byte_count =
+        send(fd, (outgoing_buffer) + total_sent,
+             outgoing_buffer_size - total_sent, MSG_NOSIGNAL);
+
+    if (sent_byte_count < 0){
+      if (errno == EINTR)
+        continue;
+      if (errno == EPIPE) // peer closed
+        return total_sent;
       return -1;
     }
-
     total_sent += sent_byte_count;
   }
-  // TODO: define a message boundary none in stream by default
 
   return total_sent;
 }
@@ -113,20 +121,16 @@ ssize_t send_byte_stream(const int fd, const char *outgoing_buffer,
 
   // NOTE: send out the message size
   uint32_t len = htonl(outgoing_buffer_size);
-  ssize_t size_byte_count = send_all(fd, (void *)&len, sizeof(uint32_t));
+  ssize_t size_byte_count = send_exact(fd, (char *)&len, sizeof(uint32_t));
 
-  if (size_byte_count <= 0) {
+  if (size_byte_count != sizeof(uint32_t))
     return -1;
-  }
 
   // NOTE: send the actual message
-
-  // TODO: What about hton endianess for the message?
   ssize_t total_sent =
-      send_all(fd, (const void *)(outgoing_buffer), outgoing_buffer_size);
-  if (total_sent <= 0) {
+      send_exact(fd, outgoing_buffer, outgoing_buffer_size);
+  if (total_sent != outgoing_buffer_size)
     return -1;
-  }
 
   return total_sent;
 }
