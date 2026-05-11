@@ -10,13 +10,17 @@ void log_output(const char *message) {
 }
 
 // NOTE: copy: pass by value, reference: through it (*), itself (**)
-int obtain_ip_list(const char *hostname, const char *portno,
+int obtain_ip_list(const char *hostname, const char *service,
                    const struct addrinfo *hints,
                    struct addrinfo **ptr_to_ip_list) {
 
-  // NOTE: provide all possible network addresses based: hostname + port + hints
-  int connection_check = getaddrinfo(hostname, portno, hints, ptr_to_ip_list);
+  if (hostname != NULL && service != NULL) {
+    log_error("both hostname and service can NOT be NULL.\n");
+    *ptr_to_ip_list = NULL;
+    return PROG_FAILURE;
+  }
 
+  int connection_check = getaddrinfo(hostname, service, hints, ptr_to_ip_list);
   if (connection_check) {
     log_error(gai_strerror(connection_check)); // only works with getaddrinfo
     *ptr_to_ip_list = NULL;
@@ -103,6 +107,8 @@ ssize_t send_byte_stream(const int fd, const char *outgoing_buffer,
   }
 
   // NOTE: send the actual message
+
+  // TODO: What about hton endianess for the message?
   ssize_t total_sent =
       send_all(fd, (const void *)(outgoing_buffer), outgoing_buffer_size);
   if (total_sent <= 0) {

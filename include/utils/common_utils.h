@@ -24,7 +24,33 @@ void log_error(const char *message);
 void log_event(const char *message);
 void log_output(const char *message);
 
-int obtain_ip_list(const char *hostname, const char *portno,
+/**
+ * @brief getaddrinfo wrapper with error-handling.
+ *
+ * @param[in]  hostname    Network address to be connected to.
+ *                         - @b ip4: Number-dot notation (e.g., "127.0.0.1").
+ *                         - @b ipv6: Hexadecimal notation (e.g., "2001:db8::1").
+ *                         - @b name: DNS-resolvable string (e.g., "google.com").
+ * @param[in]  service     Port or service name for the connection.
+ *                         - @b service: Translated via /etc/services (e.g., "https").
+ *                         - @b portno: Direct numeric string (e.g., "443").
+ * @param[in]  hints       Filters applied during socket address search:
+ *                         - @b ai_family: IP version (@c AF_INET, @c AF_INET6).
+ *                         - @b ai_socktype: Socket type (@c SOCK_STREAM, @c SOCK_DGRAM).
+ *                           - @c SOCK_STREAM: Connection oriented reliable continuous streams
+ *                           - @c SOCK_DGRAM: Discrete message oriented
+ *                         - @b ai_protocol: Transport protocol (@c IPPROTO_TCP, @c IPPROTO_UDP, or @c 0 Any).
+ *                         - @b ai_flags: Bitwise OR'd options (e.g., @c AI_PASSIVE).
+ *
+ * @param[out] ptr_to_ip_list Pointer to the linked list of returned addresses.
+ *
+ * [getaddrinfo](https://man7.org/linux/man-pages/man3/getaddrinfo.3.html)
+ *
+ * @return Status code.
+ * @retval  0 Success.
+ * @retval -1 Failure (check errno for details).
+ */
+int obtain_ip_list(const char *hostname, const char *service,
                    const struct addrinfo *hints,
                    struct addrinfo **ptr_to_ip_list);
 
