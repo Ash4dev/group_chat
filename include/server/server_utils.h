@@ -6,6 +6,15 @@
 
 int create_valid_server_socket(const struct addrinfo *ip_list);
 
+/**
+ * @brief Represents an accepted connection from a remote peer.
+ * 
+ * @details This structure holds the:
+ * struct sockaddr_storage client_socket_addr: peer's address info for both IPv4 and IPv6 addr.
+ * int peer_conn_fd: file descriptor for the active connection
+ *
+ * It is typically created immediately after a successful `accept()` call.
+ */
 typedef struct accepted_peer_conn {
   struct sockaddr_storage client_socket_addr;
   int peer_conn_fd;
