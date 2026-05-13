@@ -7,6 +7,7 @@
  */
 
 #include "task_queue.h"
+#include <stdlib.h>
 
 void thread_pool_init(thread_pool_t *pool, int count) {
   pthread_mutex_init(&pool->mx_queue, NULL);

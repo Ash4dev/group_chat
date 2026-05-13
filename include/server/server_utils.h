@@ -1,7 +1,8 @@
 #ifndef SERVER_UTILS
 #define SERVER_UTILS
 
-#include "common_utils.h"
+#include <sys/socket.h>
+#include <netdb.h>
 
 int create_valid_server_socket(const struct addrinfo *ip_list);
 
